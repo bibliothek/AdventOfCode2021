@@ -10,7 +10,11 @@
     <Content Include="Input\Day0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Input\Day1.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Solver\Day0.fs" />
+    <Compile Include="Solver\Day1.fs" />
     <Compile Include="Program.fs" />
     <Content Include="Properties\launchSettings.json" />
   </ItemGroup>

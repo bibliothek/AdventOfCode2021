@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Compile Include="Day0Tests.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="Day1Tests.fs" />
   </ItemGroup>
 
   <ItemGroup>
