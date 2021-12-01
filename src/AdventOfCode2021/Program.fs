@@ -3,8 +3,6 @@ open AdventOfCode2021.Common
 
 let getSolver (day, part): Solver =
     match (day, part) with
-        0,1 -> Day0.solver1
-        | 0,2 -> Day0.solver2
         | 1,1 -> Day1.solver1
         | 1,2 -> Day1.solver2
         | _ -> failwith $"Day {day} and Part {part} not implemented"
