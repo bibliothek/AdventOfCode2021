@@ -13,6 +13,7 @@
     <Content Include="Input\Day2.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Compile Include="Solver\DayXY.fs" />
     <Compile Include="Solver\Day1.fs" />
     <Compile Include="Solver\Day2.fs" />
     <Compile Include="Program.fs" />
