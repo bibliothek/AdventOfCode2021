@@ -2,17 +2,82 @@
 
 open System
 
-let solver1 (lines: string array) =
-    let mutable mostCommon = []
-    let threshold = lines.Length / 2
-    for i in 0 .. (lines.[0].Length - 1) do
-        let count = lines |> Array.map (fun x -> x.[i] |> sprintf "%c" |> int) |> Array.sum
-        if count > threshold then mostCommon <- mostCommon @ ["1"] else mostCommon <- mostCommon @ ["0"]
+let rec getMostCommon (lines: string array) (idx: int) acc =
+    if idx = lines.[0].Length then
+        acc
+    else
+        let count =
+            lines
+            |> Array.map (fun x -> x.[idx] |> sprintf "%c" |> int)
+            |> Array.sum
 
-    let leastCommon = mostCommon |> List.map (fun x -> if x = "0" then "1" else "0")
-    let mostCommonInt = Convert.ToInt32 ((String.Join ("", mostCommon)), 2)
-    let leastCommonInt = Convert.ToInt32 ((String.Join ("", leastCommon)), 2)
+        if count > lines.Length / 2 then
+            getMostCommon lines (idx + 1) acc @ [ "1" ]
+        else
+            getMostCommon lines (idx + 1) acc @ [ "0" ]
+
+
+
+let solver1 (lines: string array) =
+    let mostCommon = getMostCommon lines 0 [] |> List.rev
+
+    let leastCommon =
+        mostCommon
+        |> List.map (fun x -> if x = "0" then "1" else "0")
+
+    let mostCommonInt =
+        Convert.ToInt32((String.Join("", mostCommon)), 2)
+
+    let leastCommonInt =
+        Convert.ToInt32((String.Join("", leastCommon)), 2)
+
     mostCommonInt * leastCommonInt |> string
 
+let rec getLineByReduction (lines: string array) idx comparer =
+    if lines.Length = 1 then
+        lines.[0]
+    else
+        let threshold = (lines.Length |> float32) / 2.0f
+
+        let count =
+            lines
+            |> Array.map (fun x -> x.[idx] |> sprintf "%c" |> int)
+            |> Array.sum
+
+        let comparerChar: char = comparer (count, threshold)
+
+        let newLines =
+            lines
+            |> Array.filter (fun x -> x.[idx] = comparerChar)
+
+        getLineByReduction newLines (idx + 1) comparer
+
 let solver2 (lines: string array) =
-    failwith "error"
+    let mostCommonReducedLine =
+        getLineByReduction
+            lines
+            0
+            (fun (count, threshold) ->
+                if count |> float32 >= threshold then
+                    '1'
+                else
+                    '0')
+
+    let leastCommonReducedLine =
+        getLineByReduction
+            lines
+            0
+            (fun (count, threshold) ->
+                if count |> float32 >= threshold then
+                    '0'
+                else
+                    '1')
+
+    let mostCommonReducedInt =
+        Convert.ToInt32((String.Join("", mostCommonReducedLine)), 2)
+
+    let leastCommonReducedInt =
+        Convert.ToInt32((String.Join("", leastCommonReducedLine)), 2)
+
+    mostCommonReducedInt * leastCommonReducedInt
+    |> string
