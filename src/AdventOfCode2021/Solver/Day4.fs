@@ -35,11 +35,28 @@ let rec findWinningSheet (game: game) idx =
     match winningSheet with
     | Some sheet -> idx, sheet
     | None -> findWinningSheet game (idx + 1)
-let solver1 (lines: string array) =
-    let game = parseInput lines
-    let idx, winningSheet = findWinningSheet game 5
+
+let calculateFinalAnswer game winningSheet idx =
     let unmarkedSum = winningSheet.Rows |> Array.fold Array.append Array.empty |> Array.except (game.calledNumbers |> Array.take idx) |> Array.sum
     unmarkedSum * game.calledNumbers.[idx - 1] |> string
 
+let solver1 (lines: string array) =
+    let game = parseInput lines
+    let idx, winningSheet = findWinningSheet game 5
+    calculateFinalAnswer game winningSheet idx
+
+let rec findLastWinningSheet (game: game) (sheets: bingoSheet array) idx =
+    let numbersSubset = game.calledNumbers |> Array.take idx
+    let winningSheet = sheets |> Array.tryFind (fun x -> isSheetBingo x numbersSubset)
+    match winningSheet with
+    | Some sheet ->
+        if sheets.Length = 1 then
+            idx, sheets.[0]
+        else
+            findLastWinningSheet game (sheets |> Array.except [sheet]) idx
+    | None -> findLastWinningSheet game sheets (idx + 1)
+
 let solver2 (lines: string array) =
-    failwith "error"
+    let game = parseInput lines
+    let idx, winningSheet = findLastWinningSheet game game.Sheets 5
+    calculateFinalAnswer game winningSheet idx
