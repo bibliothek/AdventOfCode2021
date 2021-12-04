@@ -20,7 +20,7 @@ let getLines day =
 let main args =
     let day = args.[0] |> int
     let part = args.[1] |> int
-    printfn $"Solving for day %i{day} part %i{part}"
+    printfn $"Solving for day %i{day} part %i{part}\n"
     let solution = getLines day |> getSolver (day, part)
     printfn $"{solution}"
     0

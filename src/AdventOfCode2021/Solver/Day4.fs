@@ -29,11 +29,17 @@ let parseInput (lines: string array)  =
         { Rows = rows; Columns = columns })
     { Sheets = sheets; calledNumbers = calledNumbers }
 
-
-
+let rec findWinningSheet (game: game) idx =
+    let numbersSubset = game.calledNumbers |> Array.take idx
+    let winningSheet = game.Sheets |> Array.tryFind (fun x -> isSheetBingo x numbersSubset)
+    match winningSheet with
+    | Some sheet -> idx, sheet
+    | None -> findWinningSheet game (idx + 1)
 let solver1 (lines: string array) =
     let game = parseInput lines
-    failwith "error"
+    let idx, winningSheet = findWinningSheet game 5
+    let unmarkedSum = winningSheet.Rows |> Array.fold Array.append Array.empty |> Array.except (game.calledNumbers |> Array.take idx) |> Array.sum
+    unmarkedSum * game.calledNumbers.[idx - 1] |> string
 
 let solver2 (lines: string array) =
     failwith "error"
