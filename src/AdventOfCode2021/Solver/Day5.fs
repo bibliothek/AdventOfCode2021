@@ -37,7 +37,7 @@ let isHorizontalOrVertical (line: LineDefinition) =
 let visualizeMap (map: int [,]) =
     for i in 0 .. ((Array2D.length1 map) - 1) do
         for j in 0 .. ((Array2D.length2 map) - 1) do
-            printf $"%i{map.[i, j]} "
+            printf $"%i{map.[j, i]} "
 
         printf "\n"
 
@@ -49,6 +49,12 @@ let getMinMaxPos lineDef dimension =
     else
         (dimension lineDef.End, dimension lineDef.Start)
 
+let getDiagonalPositions lineDef dimension =
+    if dimension lineDef.Start < dimension lineDef.End then
+        [| (dimension lineDef.Start) .. (dimension lineDef.End) |]
+    else
+        [| (dimension lineDef.End) .. (dimension lineDef.Start) |]
+        |> Array.rev
 
 let calculateMap lineDefs =
     let xMax = 1000
@@ -61,17 +67,29 @@ let calculateMap lineDefs =
         match dir with
         | Horizontal ->
             let xMin, xMax = getMinMaxPos lineDef fst
+
             for i in xMin .. xMax do
                 incrementAtPos map (i, snd lineDef.Start)
         | Vertical ->
             let yMin, yMax = getMinMaxPos lineDef snd
+
             for i in yMin .. yMax do
                 incrementAtPos map (fst lineDef.Start, i)
-        | Diagonal -> failwith "not yet"
+        | Diagonal ->
+            let xDim = getDiagonalPositions lineDef fst
+            let yDim = getDiagonalPositions lineDef snd
+
+            for i in 0 .. xDim.Length - 1 do
+                incrementAtPos map (xDim.[i], yDim.[i])
+
     map
 
-let flattenArray2D (a2d:int[,]) =
-    seq {for i in 0 .. Array2D.length1 a2d - 1 do for j in 0 .. Array2D.length2 a2d - 1 do yield a2d.[i,j]}
+let flattenArray2D (a2d: int [,]) =
+    seq {
+        for i in 0 .. Array2D.length1 a2d - 1 do
+            for j in 0 .. Array2D.length2 a2d - 1 do
+                yield a2d.[i, j]
+    }
 
 let solver1 (lines: string array) =
     let lineDefs =
@@ -79,7 +97,21 @@ let solver1 (lines: string array) =
         |> Array.filter isHorizontalOrVertical
 
     let map = calculateMap lineDefs
-    map |> flattenArray2D |> Seq.filter (fun x-> x > 1) |> Seq.length |> string
+
+    map
+    |> flattenArray2D
+    |> Seq.filter (fun x -> x > 1)
+    |> Seq.length
+    |> string
 
 
-let solver2 (lines: string array) = failwith "error"
+let solver2 (lines: string array) =
+    let lineDefs = getLineDefinitions lines
+
+    let map = calculateMap lineDefs
+
+    map
+    |> flattenArray2D
+    |> Seq.filter (fun x -> x > 1)
+    |> Seq.length
+    |> string
