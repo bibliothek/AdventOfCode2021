@@ -22,4 +22,4 @@ type Day12Test() =
     [<Fact>]
     let ``Day 12 part 2`` () =
         let solution = Day12.solver2 demoData
-        Assert.Equal("", solution)
+        Assert.Equal("36", solution)
