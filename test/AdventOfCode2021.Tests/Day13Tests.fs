@@ -29,13 +29,20 @@ type Day13Test() =
 
            |]
 
-    [<Fact(Skip = "Template")>]
+    [<Fact>]
     let ``Day 13 part 1`` () =
         let solution = Day13.solver1 demoData
         Assert.Equal("17", solution)
 
 
-    [<Fact(Skip = "Template")>]
+    [<Fact>]
     let ``Day 13 part 2`` () =
         let solution = Day13.solver2 demoData
-        Assert.Equal("", solution)
+        Assert.Equal("#####
+#...#
+#...#
+#...#
+#####
+.....
+.....
+", solution)
