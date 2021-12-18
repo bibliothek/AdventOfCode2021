@@ -46,6 +46,9 @@
     <Content Include="Input\Day13.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Input\Day14.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Solver\DayXY.fs" />
     <Compile Include="Solver\Day1.fs" />
     <Compile Include="Solver\Day2.fs" />
@@ -60,6 +63,7 @@
     <Compile Include="Solver\Day11.fs" />
     <Compile Include="Solver\Day12.fs" />
     <Compile Include="Solver\Day13.fs" />
+    <Compile Include="Solver\Day14.fs" />
     <Compile Include="Program.fs" />
     <Content Include="Properties\launchSettings.json" />
   </ItemGroup>
