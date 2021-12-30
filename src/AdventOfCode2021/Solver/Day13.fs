@@ -80,9 +80,9 @@ let printMap (map: string [,]) =
 
     for y in 0 .. (map |> Array2D.length2) - 1 do
         for x in 0 .. (map |> Array2D.length1) - 1 do
-            sb.Append map.[x, y]
+            sb.Append map.[x, y] |> ignore
 
-        sb.Append Environment.NewLine
+        sb.Append Environment.NewLine |> ignore
 
     sb.ToString()
 
