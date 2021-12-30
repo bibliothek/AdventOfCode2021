@@ -31,6 +31,8 @@ let getSolver (day, part): Solver =
         | 13,2 -> Day13.solver2
         | 14,1 -> Day14.solver1
         | 14,2 -> Day14.solver2
+        | 15,1 -> Day15.solver1
+        | 15,2 -> Day15.solver2
         | _ -> failwith $"Day {day} and Part {part} not implemented"
 
 let getLines day = 

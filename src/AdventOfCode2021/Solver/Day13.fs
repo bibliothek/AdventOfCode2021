@@ -2,6 +2,7 @@
 
 open System
 open System.Text
+open AdventOfCode2021
 
 let parseInput (lines: string array) =
     let emptyLineIdx =
@@ -75,19 +76,7 @@ let solver1 (lines: string array) =
     let folded = instructions |> List.take 1 |> List.fold foldMap map
     countDots folded |> string
 
-let printMap (map: string [,]) =
-    let sb = StringBuilder()
-
-    for y in 0 .. (map |> Array2D.length2) - 1 do
-        for x in 0 .. (map |> Array2D.length1) - 1 do
-            sb.Append map.[x, y] |> ignore
-
-        sb.Append Environment.NewLine |> ignore
-
-    sb.ToString()
-
-
 let solver2 (lines: string array) =
     let map, instructions = parseInput lines
     let folded = instructions |> List.fold foldMap map
-    printMap folded
+    Array2DHelper.printMap folded
