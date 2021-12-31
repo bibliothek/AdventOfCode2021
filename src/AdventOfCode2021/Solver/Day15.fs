@@ -6,9 +6,6 @@ open AdventOfCode2021
 let parseInput (lines: string array) =
     Array2D.init lines.[0].Length lines.Length (fun x y -> Char.GetNumericValue lines.[y].[x] |> int)
 
-//let rec getPath (map: int [,]) unvisitedSet distances previous =
-//
-
 type Pos = int * int
 
 type State =
@@ -84,11 +81,17 @@ let updateCost state pos currentCost =
 
 
 let calcState (state: State) (current: Pos) =
+    if state.Unvisited.Count % 1000 = 0 then
+        printfn $"{state.Unvisited.Count} / {state.Distances.Count}"
+
     let unvisitedNeighbours =
         getNeighbours state.Map current
         |> Set.intersect state.Unvisited
 
-    let updatedState = unvisitedNeighbours |> Set.fold (fun s el -> updateCost s el state.Distances.[current]) state
+    let updatedState =
+        unvisitedNeighbours
+        |> Set.fold (fun s el -> updateCost s el state.Distances.[current]) state
+
     { updatedState with
           Unvisited = state.Unvisited |> Set.remove current }
 
@@ -104,9 +107,19 @@ let solver1 (lines: string array) =
     endState.Distances.[Array2D.length1 map - 1, Array2D.length2 map - 1]
     |> string
 
+let increaseMap (map: int [,]) =
+    Array2D.init
+        (Array2D.length1 map * 5)
+        (Array2D.length2 map * 5)
+        (fun x y ->
+            let valueInSmallMap = map.[x % (Array2D.length1 map), y % (Array2D.length2 map)]
+            let increasedValue = valueInSmallMap + 1 * (x/ (Array2D.length1 map)) + 1*(y/(Array2D.length2 map))
+            if increasedValue > 9 then increasedValue - 9 else increasedValue)
+
 let solver2 (lines: string array) =
     let smallMap = parseInput lines
-    let map = smallMap
+    let map = increaseMap smallMap
+
     let allNodes = getNodeSet map
     let initialState = initState allNodes map
 
