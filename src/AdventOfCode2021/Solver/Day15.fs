@@ -10,8 +10,10 @@ type Pos = int * int
 
 type State =
     { Distances: Map<Pos, int>
-      Unvisited: Set<Pos>
-      Map: int [,] }
+      Unvisited: Set<int * Pos>
+      Map: int [,]
+      MaxX: int
+      MaxY: int }
 
 let getNodeSet map =
     seq {
@@ -30,7 +32,9 @@ let initState nodes map =
 
     { Distances = distances
       Map = map
-      Unvisited = nodes }
+      Unvisited = Set.empty<int * Pos> |> Set.add (0, (0, 0))
+      MaxX = Array2D.length1 map - 1
+      MaxY = Array2D.length2 map - 1 }
 
 let getNeighbours map pos =
     Set.empty
@@ -59,52 +63,50 @@ let getNeighbours map pos =
             Set.empty
     )
 
+let updateNode state pos currentCost =
+    let updatedCost =
+        currentCost + state.Map.[fst pos, snd pos]
+
+    if updatedCost >= state.Distances.[pos] then
+        state
+    else
+        { state with
+              Distances =
+                  state.Distances
+                  |> Map.change
+                      pos
+                      (fun x ->
+                          match x with
+                          | Some i -> Some updatedCost
+                          | None -> None)
+              Unvisited = state.Unvisited |> Set.add (updatedCost, pos) }
 
 
-let updateCost state pos currentCost =
-    { state with
-          Distances =
-              state.Distances
-              |> Map.change
-                  pos
-                  (fun x ->
-                      let updatedCost =
-                          currentCost + state.Map.[fst pos, snd pos]
+let rec updateState (state: State) (currentPos: Pos) =
+    if currentPos = (state.MaxX, state.MaxY) then
+        state
+    else
+        let currentDistance = state.Distances.[currentPos]
 
-                      match x with
-                      | Some i ->
-                          if i < updatedCost then
-                              Some i
-                          else
-                              Some updatedCost
-                      | None -> None) }
+        let updatedState =
+            getNeighbours state.Map currentPos
+            |> Set.fold (fun s el -> updateNode s el currentDistance) state
 
+        let _, nextPos = updatedState.Unvisited.MinimumElement
 
-let calcState (state: State) (current: Pos) =
-    if state.Unvisited.Count % 1000 = 0 then
-        printfn $"{state.Unvisited.Count} / {state.Distances.Count}"
-
-    let unvisitedNeighbours =
-        getNeighbours state.Map current
-        |> Set.intersect state.Unvisited
-
-    let updatedState =
-        unvisitedNeighbours
-        |> Set.fold (fun s el -> updateCost s el state.Distances.[current]) state
-
-    { updatedState with
-          Unvisited = state.Unvisited |> Set.remove current }
-
+        updateState
+            { updatedState with
+                  Unvisited = updatedState.Unvisited.Remove(currentDistance, currentPos) }
+            nextPos
 
 let solver1 (lines: string array) =
     let map = parseInput lines
     let allNodes = getNodeSet map
     let initialState = initState allNodes map
 
-    let endState =
-        allNodes |> Set.fold calcState initialState
+    let endState = updateState initialState (0, 0)
 
-    endState.Distances.[Array2D.length1 map - 1, Array2D.length2 map - 1]
+    endState.Distances.[endState.MaxX, endState.MaxY]
     |> string
 
 let increaseMap (map: int [,]) =
@@ -112,9 +114,18 @@ let increaseMap (map: int [,]) =
         (Array2D.length1 map * 5)
         (Array2D.length2 map * 5)
         (fun x y ->
-            let valueInSmallMap = map.[x % (Array2D.length1 map), y % (Array2D.length2 map)]
-            let increasedValue = valueInSmallMap + 1 * (x/ (Array2D.length1 map)) + 1*(y/(Array2D.length2 map))
-            if increasedValue > 9 then increasedValue - 9 else increasedValue)
+            let valueInSmallMap =
+                map.[x % (Array2D.length1 map), y % (Array2D.length2 map)]
+
+            let increasedValue =
+                valueInSmallMap
+                + 1 * (x / (Array2D.length1 map))
+                + 1 * (y / (Array2D.length2 map))
+
+            if increasedValue > 9 then
+                increasedValue - 9
+            else
+                increasedValue)
 
 let solver2 (lines: string array) =
     let smallMap = parseInput lines
@@ -123,8 +134,7 @@ let solver2 (lines: string array) =
     let allNodes = getNodeSet map
     let initialState = initState allNodes map
 
-    let endState =
-        allNodes |> Set.fold calcState initialState
+    let endState = updateState initialState (0, 0)
 
-    endState.Distances.[Array2D.length1 map - 1, Array2D.length2 map - 1]
+    endState.Distances.[endState.MaxY, endState.MaxY]
     |> string
