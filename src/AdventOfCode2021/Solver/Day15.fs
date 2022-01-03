@@ -36,33 +36,6 @@ let initState nodes map =
       MaxX = Array2D.length1 map - 1
       MaxY = Array2D.length2 map - 1 }
 
-let getNeighbours map pos =
-    Set.empty
-    |> Set.union (
-        if fst pos > 0 then
-            Set.empty.Add((fst pos) - 1, snd pos)
-        else
-            Set.empty
-    )
-    |> Set.union (
-        if snd pos > 0 then
-            Set.empty.Add(fst pos, (snd pos) - 1)
-        else
-            Set.empty
-    )
-    |> Set.union (
-        if fst pos < (map |> Array2D.length1) - 1 then
-            Set.empty.Add(fst pos + 1, snd pos)
-        else
-            Set.empty
-    )
-    |> Set.union (
-        if snd pos < (map |> Array2D.length2) - 1 then
-            Set.empty.Add(fst pos, (snd pos) + 1)
-        else
-            Set.empty
-    )
-
 let updateNode state pos currentCost =
     let updatedCost =
         currentCost + state.Map.[fst pos, snd pos]
@@ -81,7 +54,6 @@ let updateNode state pos currentCost =
                           | None -> None)
               Unvisited = state.Unvisited |> Set.add (updatedCost, pos) }
 
-
 let rec updateState (state: State) (currentPos: Pos) =
     if currentPos = (state.MaxX, state.MaxY) then
         state
@@ -89,8 +61,8 @@ let rec updateState (state: State) (currentPos: Pos) =
         let currentDistance = state.Distances.[currentPos]
 
         let updatedState =
-            getNeighbours state.Map currentPos
-            |> Set.fold (fun s el -> updateNode s el currentDistance) state
+            Array2DHelper.getHorizontalAndVerticalNeighbours state.Map currentPos
+            |> Array.fold (fun s el -> updateNode s el currentDistance) state
 
         let _, nextPos = updatedState.Unvisited.MinimumElement
 

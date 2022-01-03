@@ -79,4 +79,4 @@ let solver1 (lines: string array) =
 let solver2 (lines: string array) =
     let map, instructions = parseInput lines
     let folded = instructions |> List.fold foldMap map
-    Array2DHelper.printMap folded
+    Array2DHelper.getPrintableOverview folded
