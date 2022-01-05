@@ -2,13 +2,7 @@
 
 open System
 
-type Literal = { value: int64; version: int }
-
-type Operator = { typeId: int; version: int }
-
-type Packet =
-    | Literal of Literal
-    | Operator of Operator
+type Packet = { typeId: int; version: int; value: int64 option; children: Packet list }
 
 type State =
     { Packets: Packet list
@@ -42,10 +36,9 @@ let rec readLiteral version (state: State) (previousGroups: char []) : State =
                 |> charArrayToInt64
 
         let literalPacket =
-            Literal({ version = version; value = value })
+            { version = version; value = Some value; children = []; typeId = 4 }
 
-        { state with
-              Packets = state.Packets @ [ literalPacket ]
+        {     Packets = state.Packets @ [literalPacket]
               Chars = state.Chars.[5..] }
     else
         readLiteral
@@ -74,28 +67,69 @@ and readOperator version typeId (state: State) : State =
     let lengthType = state.Chars.[0]
 
     let packet =
-        Operator({ typeId = typeId; version = version })
+        { typeId = typeId; version = version; value = None; children = [] }
 
     if lengthType = '0' then
         let numBits = state.Chars.[1..15] |> charArrayToInt
         let subChars = state.Chars.[16..(16+numBits - 1)]
-        let subState = calculateSubState { Packets = [ packet ]
+        let subState = calculateSubState { Packets = []
                                            Chars =  subChars}
-        {Packets = state.Packets @ subState.Packets; Chars = state.Chars.[16+numBits..]}
+        {Packets = state.Packets @ [{packet with children = subState.Packets }]; Chars = state.Chars.[16+numBits..]}
 
     else
         let numSubPackets = state.Chars.[1..11] |> charArrayToInt
 
         let updatedState =
             { state with
-                  Packets = state.Packets @ [ packet ]
+                  Packets = []
                   Chars = state.Chars.[12..] }
-        [| 0 .. (numSubPackets - 1) |]
-        |> Array.fold (fun (state: State) _ -> readPacket state) updatedState
+        let subState =
+            [| 0 .. (numSubPackets - 1) |]
+            |> Array.fold (fun (state: State) _ -> (readPacket state) ) updatedState
+        {Packets = state.Packets @ [{packet with children = subState.Packets }]; Chars = subState.Chars}
+
+let rec sumVersions (packets: Packet list) acc =
+    match packets with
+    | [] -> acc
+    | head :: tail -> sumVersions tail (acc + head.version + (sumVersions head.children 0))
 
 let solver1 (lines: string array) =
     let binaryRep = getBinaryRepresentation lines.[0]
     let state = readPacket (initState binaryRep)
-    state.Packets |> List.sumBy (fun x -> match x with | Literal l -> l.version | Operator o -> o.version) |> string
+    sumVersions state.Packets 0 |> string
 
-let solver2 (lines: string array) = failwith "error"
+let getFoldingOperation (typeId: int, head:int64)=
+    match typeId with
+    | 0 -> ((+), 0L)
+    | 1 -> ((fun (state:int64) (el:int64) -> state * el), 1L)
+    | 2 -> ((fun (state:int64) (el:int64) -> (if state < el then state else el)), head)
+    | 3 -> ((fun (state:int64) (el:int64) -> (if state > el then state else el)), head)
+    | _ -> failwith "unexpected type"
+
+let getPairwiseOperation (typeId: int) (first:int64) (second:int64) =
+    match typeId with
+    | 5 -> if first > second then 1L else 0L
+    | 6 -> if first < second then 1L else 0L
+    | 7 -> if first = second then 1L else 0L
+    | _ -> failwith "unexpected type"
+
+let rec calculateResult (packets: Packet list) acc =
+    match packets with
+    | [] -> acc
+    |  head :: tail  ->
+            match head.value with
+            | Some v -> calculateResult tail (acc @ [v])
+            | None ->
+                let subValues: int64 list = calculateResult head.children []
+                if head.typeId < 5 then
+                    let operation, init = getFoldingOperation (head.typeId, subValues.Head)
+                    let result = subValues |> List.fold operation init
+                    calculateResult tail (acc @ [result])
+                else
+                    let result = getPairwiseOperation head.typeId subValues.Head subValues.Tail.Head
+                    calculateResult tail (acc @ [result])
+
+let solver2 (lines: string array) =
+    let binaryRep = getBinaryRepresentation lines.[0]
+    let state = readPacket (initState binaryRep)
+    (calculateResult state.Packets []) |> List.head |> string
